@@ -1,31 +1,28 @@
+# server/app.py
 #!/usr/bin/env python3
-#server/seed.py
-from random import choice as rc
-from faker import Faker
 
-from app import app
+from flask import Flask, make_response
+from flask_migrate import Migrate
+
 from models import db, Pet
 
-with app.app_context():
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Create and initialize a faker generator
-    fake = Faker()
+migrate = Migrate(app, db)
 
-    # Delete all rows in the "pets" table
-    Pet.query.delete()
+db.init_app(app)
 
-    # Create an empty list
-    pets = []
 
-    species = ['Dog', 'Cat', 'Chicken', 'Hamster', 'Turtle']
+@app.route('/')
+def index():
+    response = make_response(
+        '<h1>Welcome to the pet directory!</h1>',
+        200
+    )
+    return response
 
-    # Add some Pet instances to the list
-    for n in range(10):
-        pet = Pet(name=fake.first_name(), species=rc(species))
-        pets.append(pet)
 
-    # Insert each Pet in the list into the "pets" table
-    db.session.add_all(pets)
-
-    # Commit the transaction
-    db.session.commit()
+if __name__ == '__main__':
+    app.run(port=5555, debug=True)
